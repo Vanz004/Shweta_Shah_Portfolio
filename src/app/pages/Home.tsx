@@ -822,7 +822,6 @@ export default function Home() {
               <div className="space-y-20">
                 {data.projects.map((proj, i) => {
                   const isEven = i % 2 === 0;
-                  return (
                   const CardWrapper = proj.link ? 'a' : 'div';
                   return (
                     <CardWrapper

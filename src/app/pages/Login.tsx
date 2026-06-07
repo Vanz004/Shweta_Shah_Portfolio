@@ -9,7 +9,7 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 30;
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +44,10 @@ export default function Login() {
     setError('');
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 400));
-    if (login(username, password)) {
+    try {
+      await login(email, password);
       navigate('/dashboard');
-    } else {
+    } catch (err) {
       const next = failedAttempts + 1;
       setFailedAttempts(next);
       if (next >= MAX_ATTEMPTS) {
@@ -120,6 +121,16 @@ export default function Login() {
             <br />
             Login
           </h1>
+          <p
+            style={{
+              color: theme.textMuted,
+              fontSize: 10,
+              marginTop: 12,
+              letterSpacing: '0.05em',
+            }}
+          >
+            Email: admin@portfolio.com | Password: changeme123
+          </p>
           <div
             style={{
               width: 32,
@@ -142,7 +153,7 @@ export default function Login() {
                 marginBottom: 8,
               }}
             >
-              USERNAME
+              EMAIL
             </label>
             <div className="relative">
               <User
@@ -156,11 +167,11 @@ export default function Login() {
                 }}
               />
               <input
-                id="login-username"
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="Username"
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="admin@portfolio.com"
                 required
                 disabled={isLockedOut}
                 style={{

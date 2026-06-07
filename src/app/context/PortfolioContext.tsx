@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { portfolioAPI } from '../../api/portfolio';
 
 export interface ProfileData {
   name: string;
@@ -61,6 +62,7 @@ export interface Publication {
   venue: string;
   link: string;
   type: 'journal' | 'conference';
+  description?: string;
 }
 
 export interface Project {
@@ -70,6 +72,7 @@ export interface Project {
   duration: string;
   status: 'funded' | 'ongoing';
   link?: string;
+  description?: string;
 }
 
 export interface Student {
@@ -114,7 +117,7 @@ export interface SectionVisibility {
   memberships: boolean;
 }
 
-interface PortfolioData {
+export interface PortfolioData {
   profile: ProfileData;
   snapshot: SnapshotData;
   researchAreas: ResearchArea[];
@@ -135,45 +138,47 @@ interface PortfolioData {
 
 interface PortfolioContextType {
   data: PortfolioData;
-  updateProfile: (profile: ProfileData) => void;
-  updateSnapshot: (snapshot: SnapshotData) => void;
-  updateAbout: (text: string) => void;
-  updateResearchHighlight: (text: string) => void;
-  addResearchArea: (area: Omit<ResearchArea, 'id'>) => void;
-  updateResearchArea: (id: string, area: Omit<ResearchArea, 'id'>) => void;
-  deleteResearchArea: (id: string) => void;
-  addTeachingSubject: (subject: Omit<TeachingSubject, 'id'>) => void;
-  updateTeachingSubject: (id: string, subject: Omit<TeachingSubject, 'id'>) => void;
-  deleteTeachingSubject: (id: string) => void;
-  addExternalLink: (link: Omit<ExternalLink, 'id'>) => void;
-  updateExternalLink: (id: string, link: Omit<ExternalLink, 'id'>) => void;
-  deleteExternalLink: (id: string) => void;
-  addEducation: (edu: Omit<Education, 'id'>) => void;
-  updateEducation: (id: string, edu: Omit<Education, 'id'>) => void;
-  deleteEducation: (id: string) => void;
-  addExperience: (exp: Omit<Experience, 'id'>) => void;
-  updateExperience: (id: string, exp: Omit<Experience, 'id'>) => void;
-  deleteExperience: (id: string) => void;
-  addPublication: (pub: Omit<Publication, 'id'>) => void;
-  updatePublication: (id: string, pub: Omit<Publication, 'id'>) => void;
-  deletePublication: (id: string) => void;
-  addProject: (proj: Omit<Project, 'id'>) => void;
-  updateProject: (id: string, proj: Omit<Project, 'id'>) => void;
-  deleteProject: (id: string) => void;
-  addStudent: (student: Omit<Student, 'id'>) => void;
-  updateStudent: (id: string, student: Omit<Student, 'id'>) => void;
-  deleteStudent: (id: string) => void;
-  addPatent: (patent: Omit<Patent, 'id'>) => void;
-  updatePatent: (id: string, patent: Omit<Patent, 'id'>) => void;
-  deletePatent: (id: string) => void;
-  addTalk: (talk: Omit<Talk, 'id'>) => void;
-  updateTalk: (id: string, talk: Omit<Talk, 'id'>) => void;
-  deleteTalk: (id: string) => void;
-  addMembership: (member: Omit<Membership, 'id'>) => void;
-  updateMembership: (id: string, member: Omit<Membership, 'id'>) => void;
-  deleteMembership: (id: string) => void;
-  toggleSectionVisibility: (section: keyof SectionVisibility) => void;
-  resetData: () => void;
+  loading: boolean;
+  error: string | null;
+  updateProfile: (profile: ProfileData) => Promise<void>;
+  updateSnapshot: (snapshot: SnapshotData) => Promise<void>;
+  updateAbout: (text: string) => Promise<void>;
+  updateResearchHighlight: (text: string) => Promise<void>;
+  addResearchArea: (area: Omit<ResearchArea, 'id'>) => Promise<void>;
+  updateResearchArea: (id: string, area: Omit<ResearchArea, 'id'>) => Promise<void>;
+  deleteResearchArea: (id: string) => Promise<void>;
+  addTeachingSubject: (subject: Omit<TeachingSubject, 'id'>) => Promise<void>;
+  updateTeachingSubject: (id: string, subject: Omit<TeachingSubject, 'id'>) => Promise<void>;
+  deleteTeachingSubject: (id: string) => Promise<void>;
+  addExternalLink: (link: Omit<ExternalLink, 'id'>) => Promise<void>;
+  updateExternalLink: (id: string, link: Omit<ExternalLink, 'id'>) => Promise<void>;
+  deleteExternalLink: (id: string) => Promise<void>;
+  addEducation: (edu: Omit<Education, 'id'>) => Promise<void>;
+  updateEducation: (id: string, edu: Omit<Education, 'id'>) => Promise<void>;
+  deleteEducation: (id: string) => Promise<void>;
+  addExperience: (exp: Omit<Experience, 'id'>) => Promise<void>;
+  updateExperience: (id: string, exp: Omit<Experience, 'id'>) => Promise<void>;
+  deleteExperience: (id: string) => Promise<void>;
+  addPublication: (pub: Omit<Publication, 'id'>) => Promise<void>;
+  updatePublication: (id: string, pub: Omit<Publication, 'id'>) => Promise<void>;
+  deletePublication: (id: string) => Promise<void>;
+  addProject: (proj: Omit<Project, 'id'>) => Promise<void>;
+  updateProject: (id: string, proj: Omit<Project, 'id'>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  addStudent: (student: Omit<Student, 'id'>) => Promise<void>;
+  updateStudent: (id: string, student: Omit<Student, 'id'>) => Promise<void>;
+  deleteStudent: (id: string) => Promise<void>;
+  addPatent: (patent: Omit<Patent, 'id'>) => Promise<void>;
+  updatePatent: (id: string, patent: Omit<Patent, 'id'>) => Promise<void>;
+  deletePatent: (id: string) => Promise<void>;
+  addTalk: (talk: Omit<Talk, 'id'>) => Promise<void>;
+  updateTalk: (id: string, talk: Omit<Talk, 'id'>) => Promise<void>;
+  deleteTalk: (id: string) => Promise<void>;
+  addMembership: (member: Omit<Membership, 'id'>) => Promise<void>;
+  updateMembership: (id: string, member: Omit<Membership, 'id'>) => Promise<void>;
+  deleteMembership: (id: string) => Promise<void>;
+  toggleSectionVisibility: (section: keyof SectionVisibility) => Promise<void>;
+  resetData: () => Promise<void>;
 }
 
 const defaultData: PortfolioData = {
@@ -275,260 +280,601 @@ const PortfolioContext = createContext<PortfolioContextType | undefined>(undefin
 
 export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const isFirstRender = useRef(true);
+  const [data, setData] = useState<PortfolioData>(defaultData);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastDataRef = useRef<string>('');
+  const isVisibleRef = useRef(true);
 
-  const [data, setData] = useState<PortfolioData>(() => {
-    const saved = localStorage.getItem('portfolioData');
-    if (!saved) return defaultData;
-    try {
-      return JSON.parse(saved) as PortfolioData;
-    } catch {
-      console.warn('PortfolioContext: corrupted localStorage data, using defaults.');
-      return defaultData;
-    }
-  });
-
+  // Fetch portfolio on mount and set up polling for real-time updates
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      localStorage.setItem('portfolioData', JSON.stringify(data));
-      return;
-    }
-    localStorage.setItem('portfolioData', JSON.stringify(data));
-    toast.success('Saved ✓', { duration: 2000 });
-  }, [data]);
+    const fetchPortfolio = async () => {
+      try {
+        setLoading(true);
+        const portfolio = await portfolioAPI.getPortfolio();
+        setData(portfolio);
+        lastDataRef.current = JSON.stringify(portfolio);
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch portfolio:', err);
+        setError(err.response?.data?.error || 'Failed to load portfolio');
+        setData(defaultData);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const resetData = () => {
-    localStorage.removeItem('portfolioData');
-    toast.success('Reset to defaults — reloading…', { duration: 1500 });
-    setTimeout(() => window.location.reload(), 1500);
+    // Initial fetch
+    fetchPortfolio();
+
+    // Handle page visibility changes (pause polling when page is hidden)
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden;
+    };
+
+    // Set up polling to check for updates every 5 seconds
+    const startPolling = () => {
+      pollIntervalRef.current = setInterval(async () => {
+        if (!isVisibleRef.current) return; // Skip polling if page is hidden
+
+        try {
+          const portfolio = await portfolioAPI.getPortfolio();
+          const portfolioString = JSON.stringify(portfolio);
+          
+          // Only update state if data has changed
+          if (portfolioString !== lastDataRef.current) {
+            setData(portfolio);
+            lastDataRef.current = portfolioString;
+            console.log('✓ Portfolio updated from backend');
+          }
+        } catch (err) {
+          console.error('Failed to poll portfolio:', err);
+        }
+      }, 5000); // Poll every 5 seconds
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup polling on unmount
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  const handleError = (err: any) => {
+    const message = err.response?.data?.error || 'An error occurred';
+    setError(message);
+    toast.error(message);
   };
 
-  const updateProfile = (profile: ProfileData) => {
+  const updateProfile = async (profile: ProfileData) => {
+    const oldData = data;
     setData(prev => ({ ...prev, profile }));
+    try {
+      await portfolioAPI.updateSection('profile', profile);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateSnapshot = (snapshot: SnapshotData) => {
+  const updateSnapshot = async (snapshot: SnapshotData) => {
+    const oldData = data;
     setData(prev => ({ ...prev, snapshot }));
+    try {
+      await portfolioAPI.updateSection('snapshot', snapshot);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateAbout = (text: string) => {
+  const updateAbout = async (text: string) => {
+    const oldData = data;
     setData(prev => ({ ...prev, aboutText: text }));
+    try {
+      await portfolioAPI.updateSection('aboutText', text);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateResearchHighlight = (text: string) => {
+  const updateResearchHighlight = async (text: string) => {
+    const oldData = data;
     setData(prev => ({ ...prev, researchHighlight: text }));
+    try {
+      await portfolioAPI.updateSection('researchHighlight', text);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addResearchArea = (area: Omit<ResearchArea, 'id'>) => {
+  const addResearchArea = async (area: Omit<ResearchArea, 'id'>) => {
     const newArea = { ...area, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, researchAreas: [...prev.researchAreas, newArea] }));
+    try {
+      await portfolioAPI.updateSection('researchAreas', data.researchAreas);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateResearchArea = (id: string, area: Omit<ResearchArea, 'id'>) => {
+  const updateResearchArea = async (id: string, area: Omit<ResearchArea, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       researchAreas: prev.researchAreas.map(a => a.id === id ? { ...area, id } : a)
     }));
+    try {
+      await portfolioAPI.updateSection('researchAreas', data.researchAreas);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteResearchArea = (id: string) => {
+  const deleteResearchArea = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       researchAreas: prev.researchAreas.filter(a => a.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('researchAreas', data.researchAreas);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addTeachingSubject = (subject: Omit<TeachingSubject, 'id'>) => {
+  const addTeachingSubject = async (subject: Omit<TeachingSubject, 'id'>) => {
     const newSubject = { ...subject, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, teachingSubjects: [...prev.teachingSubjects, newSubject] }));
+    try {
+      await portfolioAPI.updateSection('teachingSubjects', data.teachingSubjects);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateTeachingSubject = (id: string, subject: Omit<TeachingSubject, 'id'>) => {
+  const updateTeachingSubject = async (id: string, subject: Omit<TeachingSubject, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       teachingSubjects: prev.teachingSubjects.map(s => s.id === id ? { ...subject, id } : s)
     }));
+    try {
+      await portfolioAPI.updateSection('teachingSubjects', data.teachingSubjects);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteTeachingSubject = (id: string) => {
+  const deleteTeachingSubject = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       teachingSubjects: prev.teachingSubjects.filter(s => s.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('teachingSubjects', data.teachingSubjects);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addExternalLink = (link: Omit<ExternalLink, 'id'>) => {
+  const addExternalLink = async (link: Omit<ExternalLink, 'id'>) => {
     const newLink = { ...link, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, externalLinks: [...prev.externalLinks, newLink] }));
+    try {
+      await portfolioAPI.updateSection('externalLinks', data.externalLinks);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateExternalLink = (id: string, link: Omit<ExternalLink, 'id'>) => {
+  const updateExternalLink = async (id: string, link: Omit<ExternalLink, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       externalLinks: prev.externalLinks.map(l => l.id === id ? { ...link, id } : l)
     }));
+    try {
+      await portfolioAPI.updateSection('externalLinks', data.externalLinks);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteExternalLink = (id: string) => {
+  const deleteExternalLink = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       externalLinks: prev.externalLinks.filter(l => l.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('externalLinks', data.externalLinks);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addEducation = (edu: Omit<Education, 'id'>) => {
+  const addEducation = async (edu: Omit<Education, 'id'>) => {
     const newEdu = { ...edu, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, education: [...prev.education, newEdu] }));
+    try {
+      await portfolioAPI.updateSection('education', data.education);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateEducation = (id: string, edu: Omit<Education, 'id'>) => {
+  const updateEducation = async (id: string, edu: Omit<Education, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       education: prev.education.map(e => e.id === id ? { ...edu, id } : e)
     }));
+    try {
+      await portfolioAPI.updateSection('education', data.education);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteEducation = (id: string) => {
+  const deleteEducation = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       education: prev.education.filter(e => e.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('education', data.education);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addExperience = (exp: Omit<Experience, 'id'>) => {
+  const addExperience = async (exp: Omit<Experience, 'id'>) => {
     const newExp = { ...exp, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, experience: [...prev.experience, newExp] }));
+    try {
+      await portfolioAPI.updateSection('experience', data.experience);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateExperience = (id: string, exp: Omit<Experience, 'id'>) => {
+  const updateExperience = async (id: string, exp: Omit<Experience, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       experience: prev.experience.map(e => e.id === id ? { ...exp, id } : e)
     }));
+    try {
+      await portfolioAPI.updateSection('experience', data.experience);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteExperience = (id: string) => {
+  const deleteExperience = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       experience: prev.experience.filter(e => e.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('experience', data.experience);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addPublication = (pub: Omit<Publication, 'id'>) => {
+  const addPublication = async (pub: Omit<Publication, 'id'>) => {
     const newPub = { ...pub, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, publications: [...prev.publications, newPub] }));
+    try {
+      await portfolioAPI.updateSection('publications', data.publications);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updatePublication = (id: string, pub: Omit<Publication, 'id'>) => {
+  const updatePublication = async (id: string, pub: Omit<Publication, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       publications: prev.publications.map(p => p.id === id ? { ...pub, id } : p)
     }));
+    try {
+      await portfolioAPI.updateSection('publications', data.publications);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deletePublication = (id: string) => {
+  const deletePublication = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       publications: prev.publications.filter(p => p.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('publications', data.publications);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addProject = (proj: Omit<Project, 'id'>) => {
+  const addProject = async (proj: Omit<Project, 'id'>) => {
     const newProj = { ...proj, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, projects: [...prev.projects, newProj] }));
+    try {
+      await portfolioAPI.updateSection('projects', data.projects);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateProject = (id: string, proj: Omit<Project, 'id'>) => {
+  const updateProject = async (id: string, proj: Omit<Project, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       projects: prev.projects.map(p => p.id === id ? { ...proj, id } : p)
     }));
+    try {
+      await portfolioAPI.updateSection('projects', data.projects);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteProject = (id: string) => {
+  const deleteProject = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       projects: prev.projects.filter(p => p.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('projects', data.projects);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addStudent = (student: Omit<Student, 'id'>) => {
+  const addStudent = async (student: Omit<Student, 'id'>) => {
     const newStudent = { ...student, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, students: [...prev.students, newStudent] }));
+    try {
+      await portfolioAPI.updateSection('students', data.students);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateStudent = (id: string, student: Omit<Student, 'id'>) => {
+  const updateStudent = async (id: string, student: Omit<Student, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       students: prev.students.map(s => s.id === id ? { ...student, id } : s)
     }));
+    try {
+      await portfolioAPI.updateSection('students', data.students);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteStudent = (id: string) => {
+  const deleteStudent = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       students: prev.students.filter(s => s.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('students', data.students);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addPatent = (patent: Omit<Patent, 'id'>) => {
+  const addPatent = async (patent: Omit<Patent, 'id'>) => {
     const newPatent = { ...patent, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, patents: [...prev.patents, newPatent] }));
+    try {
+      await portfolioAPI.updateSection('patents', data.patents);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updatePatent = (id: string, patent: Omit<Patent, 'id'>) => {
+  const updatePatent = async (id: string, patent: Omit<Patent, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       patents: prev.patents.map(p => p.id === id ? { ...patent, id } : p)
     }));
+    try {
+      await portfolioAPI.updateSection('patents', data.patents);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deletePatent = (id: string) => {
+  const deletePatent = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       patents: prev.patents.filter(p => p.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('patents', data.patents);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addTalk = (talk: Omit<Talk, 'id'>) => {
+  const addTalk = async (talk: Omit<Talk, 'id'>) => {
     const newTalk = { ...talk, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, talks: [...prev.talks, newTalk] }));
+    try {
+      await portfolioAPI.updateSection('talks', data.talks);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateTalk = (id: string, talk: Omit<Talk, 'id'>) => {
+  const updateTalk = async (id: string, talk: Omit<Talk, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       talks: prev.talks.map(t => t.id === id ? { ...talk, id } : t)
     }));
+    try {
+      await portfolioAPI.updateSection('talks', data.talks);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteTalk = (id: string) => {
+  const deleteTalk = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       talks: prev.talks.filter(t => t.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('talks', data.talks);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const addMembership = (member: Omit<Membership, 'id'>) => {
+  const addMembership = async (member: Omit<Membership, 'id'>) => {
     const newMember = { ...member, id: Date.now().toString() };
+    const oldData = data;
     setData(prev => ({ ...prev, memberships: [...prev.memberships, newMember] }));
+    try {
+      await portfolioAPI.updateSection('memberships', data.memberships);
+      toast.success('Added ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const updateMembership = (id: string, member: Omit<Membership, 'id'>) => {
+  const updateMembership = async (id: string, member: Omit<Membership, 'id'>) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       memberships: prev.memberships.map(m => m.id === id ? { ...member, id } : m)
     }));
+    try {
+      await portfolioAPI.updateSection('memberships', data.memberships);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const deleteMembership = (id: string) => {
+  const deleteMembership = async (id: string) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       memberships: prev.memberships.filter(m => m.id !== id)
     }));
+    try {
+      await portfolioAPI.updateSection('memberships', data.memberships);
+      toast.success('Deleted ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
   };
 
-  const toggleSectionVisibility = (section: keyof SectionVisibility) => {
+  const toggleSectionVisibility = async (section: keyof SectionVisibility) => {
+    const oldData = data;
     setData(prev => ({
       ...prev,
       sectionVisibility: {
@@ -536,10 +882,24 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
         [section]: !prev.sectionVisibility[section]
       }
     }));
+    try {
+      await portfolioAPI.updateSection('sectionVisibility', data.sectionVisibility);
+      toast.success('Saved ✓', { duration: 2000 });
+    } catch (err) {
+      setData(oldData);
+      handleError(err);
+    }
+  };
+
+  const resetData = async () => {
+    setData(defaultData);
+    toast.success('Reset to defaults', { duration: 1500 });
   };
 
   const value: PortfolioContextType = {
     data,
+    loading,
+    error,
     updateProfile,
     updateSnapshot,
     updateAbout,

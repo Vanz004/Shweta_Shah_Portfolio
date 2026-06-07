@@ -1,0 +1,13 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+port = 5000
+startCommand = "npm start"
+
+[env]
+MONGO_URI = "${MONGO_URI}"
+JWT_SECRET = "${JWT_SECRET}"
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+FRONTEND_URL = "${FRONTEND_URL}"
+PORT = "5000"

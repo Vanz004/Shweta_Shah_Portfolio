@@ -1,0 +1,24 @@
+services:
+  api:
+    build: ./backend
+    port: 5000
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - PORT=5000
+
+env:
+  MONGO_URI:
+    description: MongoDB connection string
+    example: mongodb+srv://user:pass@cluster.mongodb.net/portfolio
+  JWT_SECRET:
+    description: JWT secret key (min 32 chars)
+    example: your-secret-key-here-at-least-32-characters-long
+  ANTHROPIC_API_KEY:
+    description: Anthropic API key
+    example: sk-ant-...
+  FRONTEND_URL:
+    description: Frontend URL
+    example: https://your-domain.com

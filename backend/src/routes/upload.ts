@@ -5,7 +5,6 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { verifyJWT } from '../middleware/auth.js';
-import { put } from '@vercel/blob';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -67,16 +66,9 @@ router.post('/image', verifyJWT, imageUpload.single('file'), async (req: Request
     const ext = path.extname(req.file.originalname);
     const filename = `${uuidv4()}${ext}`;
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(`images/${filename}`, req.file.buffer, {
-        access: 'public',
-      });
-      res.json({ url: blob.url });
-    } else {
-      // Local fallback
-      fs.writeFileSync(path.join(imagesDir, filename), req.file.buffer);
-      res.json({ url: `/uploads/images/${filename}` });
-    }
+    // Local file storage
+    fs.writeFileSync(path.join(imagesDir, filename), req.file.buffer);
+    res.json({ url: `/uploads/images/${filename}` });
   } catch (error) {
     console.error('Image upload error:', error);
     res.status(500).json({ error: 'Upload failed' });
@@ -93,24 +85,13 @@ router.post('/document', verifyJWT, documentUpload.single('file'), async (req: R
     const ext = path.extname(req.file.originalname);
     const filename = `${uuidv4()}${ext}`;
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(`documents/${filename}`, req.file.buffer, {
-        access: 'public',
-      });
-      res.json({
-        url: blob.url,
-        originalName: req.file.originalname,
-        fileId: filename
-      });
-    } else {
-      // Local fallback
-      fs.writeFileSync(path.join(documentsDir, filename), req.file.buffer);
-      res.json({
-        url: `/uploads/documents/${filename}`,
-        originalName: req.file.originalname,
-        fileId: filename
-      });
-    }
+    // Local file storage
+    fs.writeFileSync(path.join(documentsDir, filename), req.file.buffer);
+    res.json({
+      url: `/uploads/documents/${filename}`,
+      originalName: req.file.originalname,
+      fileId: filename
+    });
   } catch (error) {
     console.error('Document upload error:', error);
     res.status(500).json({ error: 'Upload failed' });
